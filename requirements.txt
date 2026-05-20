@@ -1,4 +1,10 @@
 flask
 pandas
+numpy
+scikit-learn
 pycryptodome
 python-dotenv
+joblib
+sqlalchemy
+asyncpg
+boto3

@@ -9,6 +9,6 @@ __pycache__/
 .streamlit/secrets.toml
 *.log
 outputs/
-models/
 checkpoints/
 large_data/
+tmp/

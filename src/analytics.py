@@ -1,37 +1,84 @@
-from pathlib import Path
-
 import pandas as pd
 
-
-DATA_DIR = Path("data")
-
-
-def load_csv(name: str) -> pd.DataFrame:
-    path = DATA_DIR / name
-    if not path.exists():
-        return pd.DataFrame()
-    return pd.read_csv(path)
+from src.data_access import load_table
 
 
 def platform_summary() -> dict:
-    destinations = load_csv("destinations.csv")
-    reviews = load_csv("reviews.csv")
-    visits = load_csv("visit_counts.csv")
-    logs = load_csv("activity_logs.csv")
+    destinations = load_table("destinations")
+    reviews = load_table("reviews")
+    visits = load_table("visits")
+    logs = load_table("activity_logs")
+
     return {
-        "destinations": len(destinations),
-        "reviews": len(reviews),
-        "visit_records": len(visits),
-        "activity_events": len(logs),
+        "destinations": int(len(destinations)),
+        "world_wonders": int(destinations["world_wonder"].nunique()) if not destinations.empty else 0,
+        "reviews": int(len(reviews)),
+        "average_rating": round(float(reviews["rating"].mean()), 2) if not reviews.empty else 0,
+        "visit_records": int(len(visits)),
+        "estimated_revenue": round(float(visits["total_price"].sum()), 2) if not visits.empty else 0,
+        "activity_events": int(len(logs)),
+        "active_users": int(logs["user_id"].nunique()) if not logs.empty else 0,
     }
 
 
-def top_destinations(limit: int = 10) -> list[dict]:
-    visits = load_csv("visit_counts.csv")
+def destination_performance(limit: int = 12) -> list[dict]:
+    destinations = load_table("destinations")
+    visits = load_table("visits")
+    reviews = load_table("reviews")
+    if destinations.empty:
+        return []
+
+    visit_metrics = pd.DataFrame()
+    if not visits.empty:
+        visit_metrics = (
+            visits.groupby("destination_id", as_index=False)
+            .agg(visits=("visit_id", "count"), revenue=("total_price", "sum"), travelers=("number_of_persons", "sum"))
+        )
+
+    review_metrics = pd.DataFrame()
+    if not reviews.empty:
+        review_metrics = reviews.groupby("destination_id", as_index=False).agg(
+            average_rating=("rating", "mean"),
+            review_count=("review_id", "count"),
+        )
+
+    frame = destinations.merge(visit_metrics, on="destination_id", how="left").merge(
+        review_metrics, on="destination_id", how="left"
+    )
+    for column in ("visits", "revenue", "travelers", "average_rating", "review_count"):
+        frame[column] = frame[column].fillna(0)
+
+    frame["score"] = (
+        frame["visits"].rank(pct=True)
+        + frame["revenue"].rank(pct=True)
+        + frame["average_rating"].rank(pct=True)
+        + (100 - frame["discount_percentage"]).rank(pct=True) / 2
+    )
+    return (
+        frame.sort_values("score", ascending=False)
+        .head(limit)
+        .round({"revenue": 2, "average_rating": 2, "score": 3})
+        .to_dict("records")
+    )
+
+
+def activity_mix() -> list[dict]:
+    logs = load_table("activity_logs")
+    if logs.empty:
+        return []
+    counts = logs["activity_type"].value_counts().reset_index()
+    counts.columns = ["activity_type", "events"]
+    return counts.to_dict("records")
+
+
+def region_revenue() -> list[dict]:
+    visits = load_table("visits")
     if visits.empty:
         return []
-    numeric = visits.select_dtypes("number")
-    if numeric.empty:
-        return visits.head(limit).to_dict("records")
-    score_column = numeric.columns[-1]
-    return visits.sort_values(score_column, ascending=False).head(limit).to_dict("records")
+    frame = (
+        visits.groupby("region", as_index=False)
+        .agg(revenue=("total_price", "sum"), travelers=("number_of_persons", "sum"), visits=("visit_id", "count"))
+        .sort_values("revenue", ascending=False)
+    )
+    return frame.round({"revenue": 2}).to_dict("records")
+
