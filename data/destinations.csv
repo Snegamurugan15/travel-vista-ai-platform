@@ -1,0 +1,15 @@
+destination_id,name,world_wonder,package_option,base_price,discount_percentage,transport_modes,dynamic_tags,created_at
+1,Great Wall of China - wonder_only,Great Wall of China,wonder_only,3377.42,0,"[""train"", ""flight"", ""cruise""]","[""cultural"", ""budget"", ""family"", ""luxury""]",2020-09-27 02:37:44
+2,Great Wall of China - surroundings,Great Wall of China,surroundings,3157.22,0,"[""flight""]","[""adventurous"", ""luxury""]",2020-03-23 10:39:55
+3,Petra - wonder_only,Petra,wonder_only,3025.6,20,"[""train"", ""road"", ""cruise"", ""flight""]","[""family"", ""scenic""]",2022-05-13 07:35:20
+4,Petra - surroundings,Petra,surroundings,1199.66,10,"[""flight""]","[""cultural"", ""scenic"", ""family""]",2022-04-01 20:06:18
+5,Christ the Redeemer - wonder_only,Christ the Redeemer,wonder_only,4132.08,15,"[""road""]","[""luxury"", ""family""]",2023-01-28 13:27:43
+6,Christ the Redeemer - surroundings,Christ the Redeemer,surroundings,3098.08,0,"[""train""]","[""cultural"", ""family"", ""romantic""]",2020-11-09 19:12:45
+7,Machu Picchu - wonder_only,Machu Picchu,wonder_only,2210.57,15,"[""train"", ""road"", ""cruise""]","[""luxury"", ""budget""]",2020-08-09 20:09:25
+8,Machu Picchu - surroundings,Machu Picchu,surroundings,3241.09,5,"[""train"", ""road""]","[""luxury"", ""budget"", ""family""]",2024-09-26 09:10:59
+9,Chichen Itza - wonder_only,Chichen Itza,wonder_only,1488.27,10,"[""train""]","[""budget"", ""adventurous""]",2022-04-11 20:12:25
+10,Chichen Itza - surroundings,Chichen Itza,surroundings,797.85,20,"[""train"", ""cruise"", ""road""]","[""romantic"", ""cultural"", ""scenic""]",2021-03-09 19:35:29
+11,Roman Colosseum - wonder_only,Roman Colosseum,wonder_only,1609.82,20,"[""road"", ""cruise"", ""train""]","[""adventurous"", ""cultural"", ""luxury""]",2024-03-13 07:12:29
+12,Roman Colosseum - surroundings,Roman Colosseum,surroundings,909.09,0,"[""train""]","[""scenic"", ""family"", ""budget"", ""adventurous""]",2025-01-26 23:28:51
+13,Taj Mahal - wonder_only,Taj Mahal,wonder_only,785.87,15,"[""cruise"", ""road"", ""flight"", ""train""]","[""luxury"", ""family"", ""budget"", ""scenic""]",2020-12-12 13:55:58
+14,Taj Mahal - surroundings,Taj Mahal,surroundings,1820.75,5,"[""flight"", ""cruise"", ""train"", ""road""]","[""cultural"", ""family"", ""budget"", ""scenic""]",2024-04-26 06:05:17
