@@ -1,6 +1,4 @@
-streamlit
+flask
 pandas
-numpy
-plotly
-scikit-learn
-openpyxl
+pycryptodome
+python-dotenv
