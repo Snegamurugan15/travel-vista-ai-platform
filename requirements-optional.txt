@@ -1,3 +1,6 @@
 pyspark
+delta-spark
+azure-eventhub
+azure-identity
 elasticsearch
 streamlit

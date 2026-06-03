@@ -1,35 +1,110 @@
-# Travel Vista AI Platform
+# Travel Vista Azure Databricks Real-Time Platform
 
-Travel Vista is a WIL capstone portfolio project for a secure AI-powered travel platform. The project combines travel package analytics, recommendation logic, cloud data-pipeline scripts, and a VR engagement model into one clean public repository.
+Travel Vista is now structured as a real-time Azure data engineering project built around Azure Databricks, Delta Lake, Azure Event Hubs, and Azure Data Lake Storage Gen2. It keeps the original Flask analytics app and recommendation layer, but the main portfolio signal is now a deployable streaming architecture rather than a standalone local Spark script.
 
-The current repo is rebuilt from the local WIL project folder and keeps the project as a Flask/API and data-engineering application rather than turning everything into a Streamlit demo.
+## What This Project Shows
 
-## Project Highlights
+- Real-time ingestion with Azure Event Hubs
+- Azure Databricks Structured Streaming notebooks
+- Bronze, Silver, and Gold Delta Lake design
+- Azure Data Lake Storage Gen2 integration
+- Databricks Asset Bundle job orchestration
+- Event generation and Event Hubs publishing utilities
+- Flask API and dashboard for analytics consumption
+- Recommendation logic and VR model integration from the original capstone
 
-- Flask dashboard and JSON API for travel analytics
-- Destination recommendation engine using TF-IDF and cosine similarity
-- AES encryption demo for sensitive travel-platform payloads
-- CSV-backed analytics over destinations, reviews, activity logs, preferences, and visit records
-- VR engagement model asset from the Week 12 deliverable
-- Sanitized AWS S3, PostgreSQL, PySpark, Databricks-ready ETL, and Elasticsearch scripts
-- Midterm presentation included under `docs/`
+## Target Architecture
+
+```text
+Travel events -> Azure Event Hubs -> Azure Databricks -> Delta Lake (Bronze/Silver/Gold)
+                                           |                    |
+                                           v                    v
+                                ADLS Gen2 raw landing      Flask analytics / BI
+```
+
+### Streaming Flow
+
+1. Booking and travel activity events are published to Azure Event Hubs.
+2. Azure Databricks ingests the stream into a Bronze Delta table.
+3. Silver transformations standardize timestamps, deduplicate records, and derive business metrics like `price_per_person`.
+4. Gold tables produce destination-level hourly KPIs and region-level daily KPIs.
+5. The Flask app and downstream dashboards can consume curated outputs.
 
 ## Repository Structure
 
 ```text
 travel-vista-ai-platform/
-  app.py                         # Main Flask dashboard and API
-  data/                          # Synthetic WIL project CSV extracts
-  docs/                          # Architecture notes and presentation
-  models/                        # VR engagement model artifact
-  scripts/                       # Cloud/data engineering scripts
-  src/                           # Analytics, recommender, security, model utilities
-  legacy/                        # Notes about original deliverables
+  app.py                                      # Flask dashboard and APIs
+  data/                                       # Synthetic source CSVs
+  databricks.yml                              # Databricks Asset Bundle
+  databricks/
+    README.md                                 # Databricks deployment notes
+    notebooks/
+      01_bronze_ingest.py                     # Event Hubs / ADLS -> Bronze Delta
+      02_silver_transform.py                  # Bronze -> Silver Delta
+      03_gold_aggregates.py                   # Silver -> Gold Delta
+  docs/
+    ARCHITECTURE.md                           # Repo architecture
+    AZURE_DATABRICKS_REALTIME.md              # Azure deployment design
+  scripts/
+    generate_streaming_events.py              # Create JSONL event stream
+    publish_events_to_event_hub.py            # Push events to Azure Event Hubs
+    load_to_postgres_async.py                 # Existing async loader
+    elasticsearch_index.py                    # Existing search indexing utility
+  src/                                        # Analytics, recommender, security, VR logic
 ```
 
-## Main App
+## Azure Databricks Deployment
 
-Run the local Flask app:
+### Prerequisites
+
+- Azure subscription
+- Azure Databricks workspace
+- Azure Event Hubs namespace + event hub
+- Azure Data Lake Storage Gen2 account + container
+- Unity Catalog-enabled cluster or assigned workspace catalog/schema
+- Databricks CLI configured locally
+
+### Bundle Variables
+
+The Databricks workflow is configured in `databricks.yml`. Set:
+
+- `databricks_host`
+- `cluster_id`
+- `catalog`
+- `schema`
+- `checkpoint_root`
+- `event_source_mode`
+- `raw_events_path`
+- `eventhubs_secret_scope`
+- `eventhubs_secret_key`
+
+### Deploy
+
+```bash
+databricks bundle deploy
+databricks bundle run travel_vista_realtime_pipeline
+```
+
+## Generate and Publish Test Events
+
+Generate synthetic booking events from the existing Travel Vista dataset:
+
+```powershell
+python scripts/generate_streaming_events.py --events 250
+```
+
+Publish them into Azure Event Hubs:
+
+```powershell
+python scripts/publish_events_to_event_hub.py `
+  --connection-string "Endpoint=sb://<namespace>.servicebus.windows.net/;SharedAccessKeyName=<policy>;SharedAccessKey=<key>" `
+  --eventhub-name "travel-vista-events"
+```
+
+## Local App
+
+The Flask app is still available for local demonstration:
 
 ```powershell
 python -m venv .venv
@@ -38,68 +113,18 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open:
+Open `http://127.0.0.1:5000`.
 
-```text
-http://127.0.0.1:5000
-```
+## Optional Dependencies
 
-## API Examples
+For the Databricks and streaming tooling:
 
 ```powershell
-curl http://127.0.0.1:5000/api/summary
-curl http://127.0.0.1:5000/api/destinations
-curl "http://127.0.0.1:5000/api/recommend?query=scenic luxury family flight&budget=3500"
+pip install -r requirements-optional.txt
 ```
 
-```powershell
-curl -X POST http://127.0.0.1:5000/api/secure-insert `
-  -H "Content-Type: application/json" `
-  -d "{\"sensitive_field\":\"passport-demo-value\"}"
-```
+## Notes
 
-VR engagement prediction:
-
-```powershell
-curl -X POST http://127.0.0.1:5000/api/vr-engagement `
-  -H "Content-Type: application/json" `
-  -d "{\"Age_Group\":\"26-35\",\"Travel_Frequency\":\"Frequently\",\"Interest_in_VR\":5,\"Past_Experience_Rating\":8,\"Package_Type\":\"Premium\",\"Duration_Days\":9,\"Price_USD\":2400}"
-```
-
-## Data Engineering Scripts
-
-The repo includes production-style scripts, but they require environment variables before use:
-
-```powershell
-$env:TRAVEL_VISTA_S3_BUCKET="your-bucket"
-python scripts/upload_to_s3.py
-```
-
-```powershell
-$env:DATABASE_URL="postgresql+asyncpg://user:password@host:5432/dbname"
-$env:TRAVEL_VISTA_AES_KEY="replace-with-16-byte-key"
-python scripts/load_to_postgres_async.py
-```
-
-Optional infrastructure scripts:
-
-```powershell
-python scripts/pyspark_pipeline.py
-python scripts/elasticsearch_index.py
-```
-
-The Spark pipeline uses standard `SparkSession` APIs and Parquet output, so it can be adapted to Azure Databricks jobs or notebooks with environment-specific path changes.
-
-## Source Notes
-
-This public repo was rebuilt from the WIL source folders:
-
-- `TRAVEL VISTA - MID TERM - WEEK 6/Codes`
-- `Week 6 deliverables/travel_insights_dashboard`
-- `Week 12 deliverables`
-
-Personal career documents, local virtual environments, videos, and hardcoded credentials were excluded. The original midterm Flask app included secrets, so its behavior was recreated in sanitized code instead of publishing the raw file.
-
-## Portfolio Positioning
-
-Use this as a cloud/data/AI platform project on a resume. It shows API design, analytics engineering, ML model integration, recommendation systems, secure configuration practices, and cloud pipeline awareness, with PySpark patterns that translate cleanly to Databricks-based data engineering workflows.
+- This repository is safe to publish because it does not include Azure secrets, tokens, or workspace-specific IDs.
+- Azure secrets should be stored in Key Vault and exposed to Databricks through secret scopes.
+- The original WIL capstone assets remain the source for the Flask, recommendation, and VR pieces, but the data engineering side is now framed as a real Azure Databricks streaming project.

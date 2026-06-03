@@ -12,3 +12,5 @@ outputs/
 checkpoints/
 large_data/
 tmp/
+.databricks/
+data/streaming/*.jsonl
