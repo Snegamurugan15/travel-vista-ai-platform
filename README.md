@@ -11,7 +11,7 @@ The current repo is rebuilt from the local WIL project folder and keeps the proj
 - AES encryption demo for sensitive travel-platform payloads
 - CSV-backed analytics over destinations, reviews, activity logs, preferences, and visit records
 - VR engagement model asset from the Week 12 deliverable
-- Sanitized AWS S3, PostgreSQL, PySpark, and Elasticsearch scripts
+- Sanitized AWS S3, PostgreSQL, PySpark, Databricks-ready ETL, and Elasticsearch scripts
 - Midterm presentation included under `docs/`
 
 ## Repository Structure
@@ -88,6 +88,8 @@ python scripts/pyspark_pipeline.py
 python scripts/elasticsearch_index.py
 ```
 
+The Spark pipeline uses standard `SparkSession` APIs and Parquet output, so it can be adapted to Azure Databricks jobs or notebooks with environment-specific path changes.
+
 ## Source Notes
 
 This public repo was rebuilt from the WIL source folders:
@@ -100,4 +102,4 @@ Personal career documents, local virtual environments, videos, and hardcoded cre
 
 ## Portfolio Positioning
 
-Use this as a cloud/data/AI platform project on a resume. It shows API design, analytics engineering, ML model integration, recommendation systems, secure configuration practices, and cloud pipeline awareness in one capstone-style project.
+Use this as a cloud/data/AI platform project on a resume. It shows API design, analytics engineering, ML model integration, recommendation systems, secure configuration practices, and cloud pipeline awareness, with PySpark patterns that translate cleanly to Databricks-based data engineering workflows.
